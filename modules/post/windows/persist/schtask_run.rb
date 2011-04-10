@@ -42,7 +42,11 @@ class Metasploit3 < Msf::Post
 	end
 
 	def run
-		migrate unless !datastore['MIGRATE'] 
+	
+		if datastore['MIGRATE']
+			migrate
+		end
+		
 		if datastore['DISABLE']
 			print_status "Disabling scheduled task..."
 			disable_task(datastore["TASKNAME"])

